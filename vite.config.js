@@ -35,9 +35,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,json}']
-      },
-      srcDir: 'public',
-      filename: 'sw.js'
+      }
     })
   ],
 })
