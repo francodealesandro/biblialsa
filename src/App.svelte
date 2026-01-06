@@ -41,6 +41,50 @@ function handleChapterSelect(book, chapter) {
     });
   }
 }
+
+  // --- Auto-Avance: ir al próximo versículo al terminar el video ---
+  let lastVideoId = null;
+
+  /**
+   * Llama cuando el iframe de YouTube se carga para escuchar el fin del video.
+   */
+  function onIframeLoad(event) {
+    const iframe = event.target;
+    if (!iframe || !video) return;
+    // Limpia listeners previos
+    if (iframe._ytListener) {
+      window.removeEventListener('message', iframe._ytListener);
+    }
+    iframe._ytListener = (e) => {
+      if (!e.data || typeof e.data !== 'object') return;
+      if (e.data.event === 'onStateChange' && e.data.info === 0) { // 0 = ended
+        handleVideoEnd();
+      }
+    };
+    window.addEventListener('message', iframe._ytListener);
+    lastVideoId = video?.videoId;
+  }
+
+  /**
+   * Si autoAdvance está activo, selecciona el próximo versículo automáticamente.
+   */
+  function handleVideoEnd() {
+    if (!autoAdvance) return;
+    const chapter = selectedChapter;
+    if (!chapter || !chapter.videos) return;
+    const idx = chapter.videos.findIndex(v => v.videoId === video?.videoId);
+    if (idx !== -1 && idx < chapter.videos.length - 1) {
+      // Siguiente versículo en el mismo capítulo
+      const next = chapter.videos[idx + 1];
+      currentVideo.set({
+        videoId: next.videoId,
+        bookId: selectedBook.id,
+        chapterId: chapter.chapter,
+        verses: next.verses
+      });
+    }
+    // Si es el último, no hace nada (puedes agregar lógica para avanzar de capítulo si lo deseas)
+  }
 </script>
 
 <UI onChapterSelect={handleChapterSelect} bind:autoAdvance>
@@ -55,51 +99,6 @@ function handleChapterSelect(book, chapter) {
       ></iframe>
     </div>
 
-<script context="module">
-// --- Auto-Avance: ir al próximo versículo al terminar el video ---
-let lastVideoId = null;
-
-/**
- * Llama cuando el iframe de YouTube se carga para escuchar el fin del video.
- */
-export function onIframeLoad(event) {
-  const iframe = event.target;
-  if (!iframe || !video) return;
-  // Limpia listeners previos
-  if (iframe._ytListener) {
-    window.removeEventListener('message', iframe._ytListener);
-  }
-  iframe._ytListener = (e) => {
-    if (!e.data || typeof e.data !== 'object') return;
-    if (e.data.event === 'onStateChange' && e.data.info === 0) { // 0 = ended
-      handleVideoEnd();
-    }
-  };
-  window.addEventListener('message', iframe._ytListener);
-  lastVideoId = video.videoId;
-}
-
-/**
- * Si autoAdvance está activo, selecciona el próximo versículo automáticamente.
- */
-export function handleVideoEnd() {
-  if (!autoAdvance) return;
-  const chapter = selectedChapter;
-  if (!chapter || !chapter.videos) return;
-  const idx = chapter.videos.findIndex(v => v.videoId === video.videoId);
-  if (idx !== -1 && idx < chapter.videos.length - 1) {
-    // Siguiente versículo en el mismo capítulo
-    const next = chapter.videos[idx + 1];
-    currentVideo.set({
-      videoId: next.videoId,
-      bookId: selectedBook.id,
-      chapterId: chapter.chapter,
-      verses: next.verses
-    });
-  }
-  // Si es el último, no hace nada (puedes agregar lógica para avanzar de capítulo si lo deseas)
-}
-</script>
     <div class="autoplay-toggle">
       <label class="switch">
         <input type="checkbox" bind:checked={autoplay} />
