@@ -29,6 +29,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
+          cname: biblia.fdealesandro.com.ar
           publish_branch: gh-pages
           keep_files: false
           force_orphan: false

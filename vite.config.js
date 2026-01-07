@@ -22,6 +22,11 @@ export default defineConfig({
         theme_color: '#1976d2',
         icons: [
           {
+            src: '/biblialsa/icon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml'
+          },
+          {
             src: '/biblialsa/icon-192.png',
             sizes: '192x192',
             type: 'image/png'
